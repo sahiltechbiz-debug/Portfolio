@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahil | Video Editor Portfolio</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- GSAP for advanced animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #070707;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            transition: filter 0.3s ease-out;
+        }
+
+        /* Motion Blur Class - Applied via JS during scroll */
+        .scrolling-blur {
+            filter: blur(4px) translateY(2px);
+            pointer-events: none;
+        }
+
+        .signature {
+            font-family: 'Dancing Script', cursive;
+        }
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(249, 115, 22, 0.1);
+        }
+        
+        /* Nav Link Hover Effects */
+        .nav-link-item {
+            position: relative;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        .nav-link-item:hover {
+            opacity: 1;
+            color: #f97316;
+            transform: translateY(-1px);
+        }
+        .nav-link-item::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 0;
+            height: 1.5px;
+            background: #f97316;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+        .nav-link-item:hover::after {
+            width: 100%;
+        }
+
+        /* Snappier Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform, opacity;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hover Glow Effects */
+        .video-thumbnail {
+            filter: grayscale(100%);
+            opacity: 0.6;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .video-container:hover .video-thumbnail {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        /* Magnetic Button feel */
+        .btn-magnetic {
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .btn-magnetic:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070707;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 10px;
+        }
+
+        /* Background Grain Effect */
+        .grain {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+        }
+
+        /* Back to Top Button */
+        #back-to-top {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(20px) scale(0.8);
+        }
+        #back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Views Badge Styling */
+        .views-badge {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4);
+            transform: rotate(3deg);
+            transition: all 0.3s ease;
+        }
+        .group:hover .views-badge {
+            transform: rotate(0deg) scale(1.1);
+            box-shadow: 0 15px 30px -5px rgba(249, 115, 22, 0.6);
+        }
+
+        /* Viral Text Hover Animation */
+        .viral-text {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+        .contact-heading:hover .viral-text {
+            color: #f97316;
+            opacity: 1;
+            font-style: normal;
+            transform: scale(1.1);
+            text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+        }
+    </style>
+</head>
+<body id="top" class="selection:bg-orange-500/30 selection:text-white">
+    <div class="grain"></div>
+
+    <!-- Social Sidebar -->
+    <div class="fixed right-6 md:right-10 top-1/2 -translate-y-1/2 z-[60] hidden sm:flex flex-col gap-6 items-center">
+        <div class="w-[1px] h-16 bg-gradient-to-b from-transparent to-orange-500/50"></div>
+        <a href="https://linkedin.com/in/sahil-thakur-482589281" target="_blank" class="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-500 transition-all duration-300 btn-magnetic">
+            <i data-lucide="linkedin" class="w-4 h-4"></i>
+        </a>
+        <a href="https://www.instagram.com/heysahill/?hl=en" target="_blank" class="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-500 transition-all duration-300 btn-magnetic">
+            <i data-lucide="instagram" class="w-4 h-4"></i>
+        </a>
+        <a href="mailto:sahiltechbiz@gmail.com" class="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-500 transition-all duration-300 btn-magnetic">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+        </a>
+        <div class="w-[1px] h-16 bg-gradient-to-t from-transparent to-orange-500/50"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 px-6 md:px-16 py-4 flex justify-between items-center bg-transparent border-b border-transparent">
+        <h1 class="text-lg font-bold tracking-widest cursor-pointer nav-link" data-target="#top">
+            SAHIL<span class="text-orange-500">.</span>
+        </h1>
+        <div class="hidden md:flex gap-10 text-[10px] font-bold uppercase tracking-[0.2em]">
+            <a href="#" class="nav-link nav-link-item" data-target="#top">Home</a>
+            <a href="#long-form" class="nav-link nav-link-item" data-target="#long-form">Long Form</a>
+            <a href="#short-form" class="nav-link nav-link-item" data-target="#short-form">Short Form</a>
+            <a href="#about" class="nav-link nav-link-item" data-target="#about">About</a>
+        </div>
+        <button id="nav-contact-btn" onclick="copyContact('nav-contact-btn')" class="bg-white text-black px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-wider hover:bg-orange-500 hover:text-white transition-all transform btn-magnetic min-w-[140px] shadow-xl shadow-white/5">
+            Let's Talk
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-[95vh] flex flex-col justify-center px-6 md:px-20 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://raw.githubusercontent.com/sahiltechbiz-debug/Profile-Picture/9c1f5de7b58e38b98567431be298b189e3d35ce7/2.png" 
+                 id="hero-bg"
+                 alt="Background" 
+                 class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/60 md:bg-black/40 bg-gradient-to-r from-black via-black/20 to-transparent"></div>
+        </div>
+        <div class="max-w-3xl relative z-10 mx-auto w-full text-center md:text-left">
+            <div id="hero-tag" class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-black/20 backdrop-blur-md text-[9px] uppercase tracking-[0.3em] mb-8 reveal active">
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                Available for Projects
+            </div>
+            <h2 id="hero-title" class="text-5xl md:text-7xl font-bold leading-[1.1] mb-6 tracking-tight text-white drop-shadow-2xl reveal active">
+                I Edit <br>
+                <span class="italic font-light opacity-80 hover:opacity-100 hover:text-orange-500 transition-all duration-500 cursor-default">Stories.</span>
+            </h2>
+            <p id="hero-desc" class="max-w-md mx-auto md:mx-0 text-sm md:text-base text-white/70 font-light leading-relaxed mb-10 drop-shadow reveal active">
+                A Guy Obsessed with Storytelling, Motion, and Videos That Drive Real Results and <span class="text-orange-500 font-medium">Actually Sell.</span>
+            </p>
+            <div id="hero-btns" class="flex flex-wrap justify-center md:justify-start gap-4 reveal active">
+                <a href="#long-form" class="nav-link flex items-center gap-3 bg-orange-500 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-orange-600 transition-all group shadow-lg shadow-orange-500/20 btn-magnetic" data-target="#long-form">
+                    View Work <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                <a href="#contact" class="nav-link flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all group btn-magnetic" data-target="#contact">
+                    Connect <i data-lucide="message-circle" class="w-3.5 h-3.5 group-hover:scale-110 transition-transform"></i>
+                </a>
+                <a href="https://drive.google.com/file/d/11Fis5qKFaqmC6TcW18yl_zkVerV9JBmz/view?usp=drive_link" target="_blank" class="flex items-center gap-3 bg-transparent border border-white/10 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:border-white/30 transition-all group btn-magnetic">
+                    Download CV <i data-lucide="download" class="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Long Form Section -->
+    <section id="long-form" class="px-6 md:px-20 py-32 max-w-7xl mx-auto scroll-mt-24 relative">
+        <div class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10 reveal">
+            <div>
+                <h3 class="text-orange-500 font-mono text-[10px] uppercase tracking-[0.6em] mb-4">Collection 01</h3>
+                <h2 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase">Long-Form <span class="text-orange-500">Editing</span></h2>
+            </div>
+            <p class="text-white/40 text-xs md:text-sm max-w-xs font-light leading-relaxed">
+                High-retention storytelling for documentaries, interviews, and deep-dive YouTube series.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 relative z-10">
+            <!-- Project 1 -->
+            <a href="https://www.youtube.com/watch?v=1JxhBjJGYoE" target="_blank" class="group video-container reveal">
+                <div class="relative aspect-video bg-[#111] rounded-2xl overflow-hidden mb-5 border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                    <img src="https://i.ytimg.com/vi/1JxhBjJGYoE/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Emailed Brands">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                            <i data-lucide="play" class="fill-current w-6 h-6"></i>
+                         </div>
+                    </div>
+                </div>
+                <h4 class="text-lg font-bold text-white group-hover:text-orange-500 transition-colors">I Emailed 100+ Brands!</h4>
+            </a>
+
+            <!-- Project 2 -->
+            <a href="https://youtu.be/2-nDR9V_-m4" target="_blank" class="group video-container reveal">
+                <div class="relative aspect-video bg-[#111] rounded-2xl overflow-hidden mb-5 border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                    <img src="https://img.youtube.com/vi/2-nDR9V_-m4/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Hair Loss FAQ">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                            <i data-lucide="play" class="fill-current w-6 h-6"></i>
+                         </div>
+                    </div>
+                </div>
+                <h4 class="text-lg font-bold text-white group-hover:text-orange-500 transition-colors">Hair Loss FAQ with Experts</h4>
+            </a>
+
+            <!-- Project 3 -->
+            <a href="https://youtu.be/xdKKhrOu6EY" target="_blank" class="group video-container reveal">
+                <div class="relative aspect-video bg-[#111] rounded-2xl overflow-hidden mb-5 border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                    <img src="https://img.youtube.com/vi/xdKKhrOu6EY/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Hailey Bieber Strategy">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                            <i data-lucide="play" class="fill-current w-6 h-6"></i>
+                         </div>
+                    </div>
+                </div>
+                <h4 class="text-lg font-bold text-white group-hover:text-orange-500 transition-colors">Hailey Bieber Strategy</h4>
+            </a>
+        </div>
+    </section>
+
+    <!-- Short Form Section -->
+    <section id="short-form" class="px-6 md:px-20 py-32 bg-[#0a0a0a] scroll-mt-24 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 reveal">
+                <div>
+                    <h3 class="text-orange-500 font-mono text-[10px] uppercase tracking-[0.6em] mb-4">Collection 02</h3>
+                    <h2 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase">Short-Form <span class="text-orange-500">Content</span></h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
+                <!-- Short 1 -->
+                <a href="https://youtube.com/shorts/rBbHaUoXmm8" target="_blank" class="group video-container reveal">
+                    <div class="relative aspect-[9/16] bg-[#111] rounded-2xl overflow-hidden border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                        <img src="https://img.youtube.com/vi/rBbHaUoXmm8/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Short Form 1">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                                <i data-lucide="play" class="fill-current w-5 h-5"></i>
+                             </div>
+                        </div>
+                    </div>
+                </a>
+                <!-- Short 2 -->
+                <a href="https://youtube.com/shorts/aEoVw4CA3Ds" target="_blank" class="group video-container reveal" style="transition-delay: 50ms;">
+                    <div class="relative aspect-[9/16] bg-[#111] rounded-2xl overflow-hidden border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                        <img src="https://img.youtube.com/vi/aEoVw4CA3Ds/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Short Form 2">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                                <i data-lucide="play" class="fill-current w-5 h-5"></i>
+                             </div>
+                        </div>
+                    </div>
+                </a>
+                <!-- Short 3 -->
+                <a href="https://youtube.com/shorts/yockPwd-Db4" target="_blank" class="group video-container reveal" style="transition-delay: 100ms;">
+                    <div class="relative aspect-[9/16] bg-[#111] rounded-2xl overflow-hidden border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                        <img src="https://img.youtube.com/vi/yockPwd-Db4/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Short Form 3">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                                <i data-lucide="play" class="fill-current w-5 h-5"></i>
+                             </div>
+                        </div>
+                    </div>
+                </a>
+                <!-- Short 4 -->
+                <a href="https://youtube.com/shorts/exBVMunK5eM" target="_blank" class="group video-container reveal" style="transition-delay: 150ms;">
+                    <div class="relative aspect-[9/16] bg-[#111] rounded-2xl overflow-hidden border border-white/5 group-hover:border-orange-500/30 transition-colors shadow-2xl">
+                        <img src="https://img.youtube.com/vi/exBVMunK5eM/maxresdefault.jpg" class="w-full h-full object-cover video-thumbnail" alt="Short Form 4">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform">
+                                <i data-lucide="play" class="fill-current w-5 h-5"></i>
+                             </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="px-6 md:px-20 py-32 bg-black scroll-mt-24">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+            <!-- Profile Image Column with Flex Badge -->
+            <div class="w-full md:w-5/12 relative group shrink-0 reveal">
+                <div class="aspect-[1/1] overflow-hidden relative border border-white/5 rounded-2xl shadow-2xl">
+                    <img id="profile-pic" 
+                         src="https://raw.githubusercontent.com/sahiltechbiz-debug/Profile-Picture/e8d25f0649a2d5476c8f20895400b9ea8d7ea720/Profile.jpg" 
+                         alt="Sahil Thakur" 
+                         class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105">
+                </div>
+                <!-- 5 Million + Views Template -->
+                <div class="views-badge absolute -bottom-4 -right-4 z-20 px-6 py-4 rounded-xl flex flex-col items-center justify-center text-white">
+                    <span class="text-2xl md:text-3xl font-black tracking-tighter leading-none">5M+</span>
+                    <span class="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] opacity-90 mt-1">Total Views</span>
+                </div>
+            </div>
+
+            <div class="w-full md:w-7/12 flex flex-col reveal">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">Hello, I'm <span class="text-orange-500">Sahil</span></h2>
+                <p class="text-xs md:text-sm text-white/40 leading-relaxed max-w-md mb-10 font-light">
+                    An extremely passionate video editor and creative professional specializing in cinematic storytelling. I help brands and creators turn raw ideas into high-engagement visual experiences.
+                </p>
+                <p class="text-2xl signature text-orange-500/80">Sahil Thakur</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="px-6 md:px-20 pt-32 pb-16 max-w-4xl mx-auto scroll-mt-24 reveal">
+        <div class="flex flex-col items-center text-center">
+            <h2 class="text-3xl md:text-5xl font-semibold mb-12 text-white contact-heading">
+                Let's build something <span class="opacity-30 italic viral-text">viral.</span>
+            </h2>
+            
+            <div class="flex flex-col gap-10 w-full items-center">
+                <!-- Detail Links -->
+                <div class="flex flex-col gap-6 w-full">
+                    <a href="mailto:sahiltechbiz@gmail.com" class="flex items-center gap-3 text-lg md:text-xl text-white/60 hover:text-white transition-all justify-center group btn-magnetic">
+                        <i data-lucide="mail" class="text-orange-500 w-5 h-5"></i>
+                        <span class="underline underline-offset-8 decoration-orange-500/40">sahiltechbiz@gmail.com</span>
+                    </a>
+                    <a href="tel:+918219475442" class="flex items-center gap-3 text-lg md:text-xl text-white/60 hover:text-white transition-all justify-center group btn-magnetic">
+                        <i data-lucide="phone" class="text-orange-500 w-5 h-5"></i>
+                        <span class="underline underline-offset-8 decoration-orange-500/40">+91 82194 75442</span>
+                    </a>
+                </div>
+
+                <!-- Copy All Button -->
+                <div class="pt-6">
+                    <button id="copy-details-btn" onclick="copyContact('copy-details-btn')" class="flex items-center gap-3 bg-white/5 border border-white/10 px-8 py-4 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] text-white hover:bg-orange-500 hover:border-orange-500 transition-all duration-300 btn-magnetic min-w-[240px] group">
+                        <i data-lucide="copy" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                        <span id="copy-btn-text">Copy All Details</span>
+                    </button>
+                    <p class="text-[10px] text-white/30 mt-4 uppercase tracking-widest font-medium">Copies Email & Phone Number</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 border-t border-white/5 text-center text-[10px] opacity-30 uppercase tracking-[0.3em]">
+        &copy; 2024 Sahil Thakur. All Rights Reserved.
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="nav-link fixed bottom-10 left-1/2 -translate-x-1/2 md:left-auto md:right-10 md:translate-x-0 z-[70] w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-2xl shadow-orange-500/30 hover:bg-orange-600 transition-all active:scale-90" data-target="#top">
+        <i data-lucide="arrow-up" class="w-5 h-5"></i>
+    </button>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Optimized Reveal animations on scroll
+        const reveal = () => {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(el => {
+                const windowHeight = window.innerHeight;
+                const elementTop = el.getBoundingClientRect().top;
+                // Reveal slightly earlier so they are ready by the time user looks
+                if (elementTop < windowHeight - 100) {
+                    el.classList.add('active');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', reveal, { passive: true });
+        window.addEventListener('load', reveal);
+
+        // Back to Top Visibility & Navbar
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            const btt = document.getElementById('back-to-top');
+            
+            if (window.scrollY > 50) nav.classList.add('glass-nav');
+            else nav.classList.remove('glass-nav');
+
+            if (window.scrollY > 500) btt.classList.add('show');
+            else btt.classList.remove('show');
+        }, { passive: true });
+
+        // GSAP Setup
+        window.onload = () => {
+            gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+            // Fast Scroll with Motion Blur
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetSelector = link.getAttribute('data-target');
+                    const targetElement = document.querySelector(targetSelector);
+                    
+                    if (targetElement) {
+                        // Add blur for motion effect
+                        document.body.classList.add('scrolling-blur');
+
+                        gsap.to(window, {
+                            duration: 0.6,
+                            scrollTo: {
+                                y: targetElement,
+                                offsetY: 80
+                            },
+                            ease: "power2.inOut",
+                            onComplete: () => {
+                                setTimeout(() => {
+                                    document.body.classList.remove('scrolling-blur');
+                                }, 50);
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Parallax effect for hero background
+            gsap.to("#hero-bg", {
+                scrollTrigger: {
+                    trigger: "section",
+                    start: "top top",
+                    end: "bottom top",
+                    scrub: true
+                },
+                y: 100,
+                opacity: 0.2
+            });
+        };
+
+        /**
+         * Copy Contact Details
+         */
+        function copyContact(buttonId) {
+            const email = "sahiltechbiz@gmail.com";
+            const phone = "8219475442";
+            const fullText = `Email: ${email}\nPhone: ${phone}`;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = fullText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const btn = document.getElementById(buttonId);
+                const originalContent = btn.innerHTML;
+                
+                // Visual feedback
+                if (buttonId === 'nav-contact-btn') {
+                    btn.innerText = "Details Copied!";
+                    btn.classList.add('bg-orange-500', 'text-white');
+                } else if (buttonId === 'copy-details-btn') {
+                    const textSpan = document.getElementById('copy-btn-text');
+                    textSpan.innerText = "Details Copied!";
+                    btn.classList.add('!bg-orange-500', '!border-orange-500');
+                }
+                
+                setTimeout(() => { 
+                    btn.innerHTML = originalContent; 
+                    btn.classList.remove('bg-orange-500', 'text-white', '!bg-orange-500', '!border-orange-500');
+                    lucide.createIcons(); // Re-render icons if HTML was replaced
+                }, 1500);
+            } catch (err) {
+                console.error('Failed to copy', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
